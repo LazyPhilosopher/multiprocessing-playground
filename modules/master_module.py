@@ -69,7 +69,7 @@ class MasterModule:
 # Module offered methods
 class ModuleMethods:
     @staticmethod
-    def display_fisheye(master_module, result_key: str, image_path: str | Path):
+    def display_fisheye(master_module, result_key: str, image_path: str | Path, strength: float):
         from modules.gui_module import GuiModule, ModuleMethods as GuiModuleMethods
         from modules.math_module import MathModule, ModuleMethods as MathModuleMethods
         from modules.io_module import IoModule, ModuleMethods as IoModuleMethods
@@ -87,7 +87,7 @@ class ModuleMethods:
 
         # Request for image distortion and wait for execution
         print("Request for image distortion and wait for execution")
-        distorded_key = math_service.send_request(MathModuleMethods.fisheye_effect, {"image": image, "strength": 0.01})
+        distorded_key = math_service.send_request(MathModuleMethods.fisheye_effect, {"image": image, "strength": strength})
         while distorded_key not in master_module.result_storage:
             pass
         image = master_module.get_result(item_key=distorded_key)

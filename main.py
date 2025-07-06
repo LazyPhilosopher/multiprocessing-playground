@@ -21,7 +21,7 @@ if __name__ == "__main__":
     math_service: MathModule = master.get_service(Services.Math)
 
     # Complex macro execution - being executed in Master module's thread
-    image_key = master.execute_macro(Macros.display_fisheye, {"image_path": "img/lena.png"})
+    image_key = master.execute_macro(Macros.display_fisheye, {"image_path": "img/lena.png", "strength": 0.005})
 
     # Atomic tasks being requested by each module separately
     math_service.send_request(MathModuleMethods.execute_short_calculation, {"x": 2, "y": 3})
