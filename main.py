@@ -1,19 +1,15 @@
 # main.py
-
-import multiprocessing
-
-from modules.master_module import MasterModule, Services, ModuleMethods as Macros
+from modules.master_module import MasterModule, Services, ModuleMethods as Macros, await_result_by_key
 from modules.gui_module import GuiModule, ModuleMethods as GuiModuleMethods
 from modules.math_module import MathModule, ModuleMethods as MathModuleMethods
 
 
 if __name__ == "__main__":
     """Run several tasks simultaneously incorporating various modules in process."""
+    import multiprocessing
     multiprocessing.set_start_method('spawn')
-    manager = multiprocessing.Manager()
-    result_storage = manager.dict()  # Shared dict to store results
 
-    master = MasterModule(result_storage)   # Start Master module
+    master = MasterModule()   # Start Master module
 
     master.register_service([Services.Math, Services.GUI, Services.IO])     # Start modules necessary for task execution
 
@@ -30,16 +26,20 @@ if __name__ == "__main__":
     gui_service.send_request(GuiModuleMethods.execute_show_text)
 
     # Wait for atomic tasks to finish
-    print(f"Await for atomic tasks: {key}")
-    while key not in result_storage:
-        pass
+    result_arrived = await_result_by_key(result_key=key, timeout_s=15)
 
     # Display atomic tasks results
-    print("Results from MathModule:", list(result_storage.items()))
+    if result_arrived:
+        print("Results from MathModule:", list(master.result_storage.items()))
+    else:
+        print("Error while waiting for MathModule atomic tasks execution.")
+
+    # Display atomic tasks results
+    print("Results from MathModule:", list(master.result_storage.items()))
 
     # Wait user to close GUI window
     print(f"Await for image closed: {key}")
-    while image_key not in result_storage:
+    while image_key not in master.result_storage:
         pass
 
     # Shutdown every module
