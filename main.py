@@ -1,4 +1,8 @@
 # main.py
+import multiprocessing as mp
+mp.set_start_method('spawn')
+
+
 from modules.master_module import MasterModule, Services, ModuleMethods as Macros, await_result_by_key
 from modules.gui_module import GuiModule, ModuleMethods as GuiModuleMethods
 from modules.math_module import MathModule, ModuleMethods as MathModuleMethods
@@ -6,9 +10,6 @@ from modules.math_module import MathModule, ModuleMethods as MathModuleMethods
 
 if __name__ == "__main__":
     """Run several tasks simultaneously incorporating various modules in process."""
-    import multiprocessing
-    multiprocessing.set_start_method('spawn')
-
     master = MasterModule()   # Start Master module
 
     master.register_service([Services.Math, Services.GUI, Services.IO])     # Start modules necessary for task execution
