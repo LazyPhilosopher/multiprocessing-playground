@@ -1,5 +1,7 @@
 # master_module.py
+import multiprocessing
 import uuid
+from datetime import datetime
 from pathlib import Path
 
 import cv2
@@ -12,18 +14,22 @@ from modules.io_module import IoModule
 from modules.math_module import MathModule
 
 
+result_arrived_event = multiprocessing.Event()
+
+
 class Services(Enum):
-    Math    = 1
-    GUI     = 2
-    IO      = 3
+    Math = 1
+    GUI = 2
+    IO = 3
 
 
 # Module definition
 class MasterModule:
-    def __init__(self, result_storage):
+    def __init__(self, ):
         self.max_processes = 5
         self.services = {}
-        self.result_storage = result_storage
+        self.manager = multiprocessing.Manager()
+        self.result_storage = self.manager.dict()
         self.macros = ModuleMethods()
 
     def register_service(self, service: Services | list):
@@ -104,3 +110,12 @@ class ModuleMethods:
 
 
 # Module utils
+def await_result_by_key(result_key: str, timeout_s: float, start_time: datetime | None = datetime.now()):
+    # global result_arrived_event
+    result_arrived_event.wait()
+    if timeout_s < (datetime.now() - start_time).seconds:
+        return False
+    if result_arrived_event.value != result_key:
+        await_result_by_key(result_key=result_key, timeout_s=timeout_s, start_time=start_time)
+
+    return True
