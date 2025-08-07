@@ -1,4 +1,6 @@
 # math_module.py
+import multiprocessing
+
 import cv2
 import numpy as np
 
@@ -8,22 +10,22 @@ from modules.base_service_module import BaseServiceModule
 # Module definition
 class MathModule(BaseServiceModule):
     def __init__(self, result_storage=None):
-        super().__init__("MathModule", process_count=1, result_storage=result_storage)  # Pass result_storage
+        super().__init__("MathModule", process_count=1, result_storage=result_storage)
         self.methods = ModuleMethods()
 
 
 # Module offered methods
 class ModuleMethods:
     @staticmethod
-    def execute_short_calculation(x=1, y=2):
-        print(x + y)
+    def execute_sum_calculation(x=1, y=2):
+        print(f"[MathModule]: execute_sum_calculation => {x + y}")
         return x + y
 
     @staticmethod
-    def execute_long_calculation(x=10, y=20):
+    def execute_mul_calculation(x=10, y=20):
         import time
         time.sleep(3)
-        print(x * y)
+        print(f"[MathModule]: execute_mul_calculation => {x * y}")
         return x * y
 
     @staticmethod

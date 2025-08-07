@@ -1,4 +1,5 @@
 # io_module.py
+import multiprocessing
 import time
 from pathlib import Path
 
@@ -10,7 +11,7 @@ from modules.base_service_module import BaseServiceModule
 # Module definition
 class IoModule(BaseServiceModule):
     def __init__(self, result_storage=None):
-        super().__init__("IoModule", process_count=1, result_storage=result_storage)  # Pass result_storage
+        super().__init__("IoModule", process_count=1, result_storage=result_storage)
         self.methods = ModuleMethods()
 
 

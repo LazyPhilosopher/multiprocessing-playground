@@ -2,16 +2,19 @@
 
 import multiprocessing
 
-from modules.master_module import MasterModule, Services, ModuleMethods as Macros
+from modules.master_module import MasterModule, Services, ModuleMethods as Macros, ResultStorage
 from modules.gui_module import GuiModule, ModuleMethods as GuiModuleMethods
 from modules.math_module import MathModule, ModuleMethods as MathModuleMethods
 
 
 if __name__ == "__main__":
     """Run several tasks simultaneously incorporating various modules in process."""
+    from utils import wait_for_result
+
     multiprocessing.set_start_method('spawn')
-    manager = multiprocessing.Manager()
-    result_storage = manager.dict()  # Shared dict to store results
+
+    result_storage = ResultStorage()  # Shared dict to store results
+    # result_event_dict = {} # dict with all upcoming result flags
 
     master = MasterModule(result_storage)   # Start Master module
 
@@ -24,23 +27,21 @@ if __name__ == "__main__":
     image_key = master.execute_macro(Macros.display_fisheye, {"image_path": "img/lena.png", "strength": 0.005})
 
     # Atomic tasks being requested by each module separately
-    math_service.send_request(MathModuleMethods.execute_short_calculation, {"x": 2, "y": 3})
-    key = math_service.send_request(MathModuleMethods.execute_long_calculation, {"x": 10, "y": 7})
-    math_service.send_request(MathModuleMethods.execute_short_calculation, {"x": 2, "y": 3})
+    sum1_key = math_service.send_request(MathModuleMethods.execute_sum_calculation, {"x": 2, "y": 3})
+    mul1_key = math_service.send_request(MathModuleMethods.execute_mul_calculation, {"x": 10, "y": 7})
+    sum2_key = math_service.send_request(MathModuleMethods.execute_sum_calculation, {"x": 2, "y": 3})
     gui_service.send_request(GuiModuleMethods.execute_show_text)
 
     # Wait for atomic tasks to finish
-    print(f"Await for atomic tasks: {key}")
-    while key not in result_storage:
-        pass
+    print(f"[MAIN]: Await for atomic tasks: {mul1_key}")
+    wait_for_result(key=mul1_key, result_storage=result_storage, timeout_s=10)
 
     # Display atomic tasks results
-    print("Results from MathModule:", list(result_storage.items()))
+    print("[MAIN]: Results from MathModule:", list(f"{key}: {result_storage.results[key]}" for key in [sum1_key, sum2_key, mul1_key]))
 
     # Wait user to close GUI window
-    print(f"Await for image closed: {key}")
-    while image_key not in result_storage:
-        pass
+    print(f"[MAIN]: Await for image closed: {image_key}")
+    wait_for_result(key=image_key, result_storage=result_storage, timeout_s=10)
 
     # Shutdown every module
     master.shutdown()

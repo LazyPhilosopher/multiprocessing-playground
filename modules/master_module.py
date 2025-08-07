@@ -1,12 +1,10 @@
 # master_module.py
+import multiprocessing
+import threading
 import uuid
+from enum import Enum
 from pathlib import Path
 
-import cv2
-import numpy as np
-import threading
-
-from enum import Enum
 from modules.gui_module import GuiModule
 from modules.io_module import IoModule
 from modules.math_module import MathModule
@@ -18,9 +16,21 @@ class Services(Enum):
     IO      = 3
 
 
+class ResultStorage:
+    def __init__(self):
+        manager = multiprocessing.Manager()
+        self.results = manager.dict()
+        self.new_item_condition = multiprocessing.Condition()
+
+    def put_result(self, _key, _value):
+        self.results[_key] = _value
+        with self.new_item_condition:
+            self.new_item_condition.notify_all()
+
+
 # Module definition
 class MasterModule:
-    def __init__(self, result_storage):
+    def __init__(self, result_storage: ResultStorage):
         self.max_processes = 5
         self.services = {}
         self.result_storage = result_storage
@@ -51,7 +61,7 @@ class MasterModule:
         if arguments:
             t = threading.Thread(target=macro, kwargs={"master_module": self, "result_key": key, **arguments})
         else:
-            t = threading.Thread(target=macro, kwargs={"master_module": self, "result_key": key,  })
+            t = threading.Thread(target=macro, kwargs={"master_module": self, "result_key": key, })
         t.start()
         return key
 
@@ -63,13 +73,15 @@ class MasterModule:
         return self.services.get(service)
 
     def get_result(self, item_key: str):
-        return self.result_storage.pop(item_key)
+        return self.result_storage.results.pop(item_key)
 
 
 # Module offered methods
 class ModuleMethods:
     @staticmethod
     def display_fisheye(master_module, result_key: str, image_path: str | Path, strength: float):
+        from utils import wait_for_result
+
         from modules.gui_module import GuiModule, ModuleMethods as GuiModuleMethods
         from modules.math_module import MathModule, ModuleMethods as MathModuleMethods
         from modules.io_module import IoModule, ModuleMethods as IoModuleMethods
@@ -79,28 +91,31 @@ class ModuleMethods:
         io_module: IoModule = master_module.get_service(Services.IO)
 
         # Request image load and wait for execution
-        print("Request image load and wait for execution")
+        print("[MasterModule]: Request image load and wait for execution")
         img_key = io_module.send_request(IoModuleMethods.load_image, {"image_path": image_path})
-        while img_key not in master_module.result_storage:
-            pass
+        # while img_key not in master_module.result_storage.results:
+        #     pass
+        wait_for_result(key=img_key, result_storage=master_module.result_storage, timeout_s=10)
         image = master_module.get_result(item_key=img_key)
 
         # Request for image distortion and wait for execution
-        print("Request for image distortion and wait for execution")
+        print("[MasterModule]: Request for image distortion and wait for execution")
         distorded_key = math_service.send_request(MathModuleMethods.fisheye_effect, {"image": image, "strength": strength})
-        while distorded_key not in master_module.result_storage:
+        while distorded_key not in master_module.result_storage.results:
             pass
+        wait_for_result(key=distorded_key, result_storage=master_module.result_storage, timeout_s=30)
         image = master_module.get_result(item_key=distorded_key)
 
         # Request image display and wait for execution
-        print("Request image display and wait for execution")
+        print("[MasterModule]: Request image display and wait for execution")
         windows_closed_key = gui_service.send_request(GuiModuleMethods.execute_show_image, {"image": image})
-        print(windows_closed_key)
-        while windows_closed_key not in master_module.result_storage:
-            pass
+        # print(windows_closed_key)
+        # while windows_closed_key not in master_module.result_storage.results:
+        #     pass
+        wait_for_result(key=windows_closed_key, result_storage=master_module.result_storage, timeout_s=10)
 
-        print(f"Put True to {result_key}")
-        master_module.result_storage[result_key] = True
+        print(f"[MasterModule]: Window closed")
+        master_module.result_storage.results[result_key] = True
 
 
 # Module utils

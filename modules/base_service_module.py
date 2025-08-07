@@ -37,7 +37,7 @@ class BaseServiceModule:
             # Task execution class wrapper
             result = func(**_args) if _args else func()
             if result is not None:
-                self.result_storage[_key] = result  # Store result in the shared list
+                self.result_storage.put_result(_key=_key, _value=result)  # Store result in the shared list
 
         while self.running.is_set():
             try:
