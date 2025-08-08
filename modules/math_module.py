@@ -1,5 +1,6 @@
 # math_module.py
 import multiprocessing
+from datetime import datetime
 
 import cv2
 import numpy as np
@@ -18,14 +19,14 @@ class MathModule(BaseServiceModule):
 class ModuleMethods:
     @staticmethod
     def execute_sum_calculation(x=1, y=2):
-        print(f"[MathModule]: execute_sum_calculation => {x + y}")
+        print(f"[{datetime.now().strftime("%H:%M:%S")}][MathModule]: execute_sum_calculation => {x + y}")
         return x + y
 
     @staticmethod
     def execute_mul_calculation(x=10, y=20):
         import time
-        time.sleep(3)
-        print(f"[MathModule]: execute_mul_calculation => {x * y}")
+        time.sleep(5)
+        print(f"[{datetime.now().strftime("%H:%M:%S")}][MathModule]: execute_mul_calculation => {x * y}")
         return x * y
 
     @staticmethod

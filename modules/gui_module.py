@@ -1,4 +1,5 @@
 # gui_module.py
+from datetime import datetime
 
 import cv2
 
@@ -16,13 +17,13 @@ class GuiModule(BaseServiceModule):
 class ModuleMethods:
     @staticmethod
     def execute_show_text(text="Hello"):
-        print(f"[GuiModule]: Showing text => {text}")
+        print(f"[{datetime.now().strftime("%H:%M:%S")}][GuiModule]: Showing text => {text}")
 
     @staticmethod
     def execute_show_image(image):
         cv2.imshow('Fisheye Effect', image)
         wait_until_closed_or_keypress('Fisheye Effect')
-        print(f"[GuiModule]: Displaying image")
+        print(f"[{datetime.now().strftime("%H:%M:%S")}][GuiModule]: Displaying image")
         return True
 
 

@@ -2,6 +2,7 @@
 import multiprocessing
 import threading
 import uuid
+from datetime import datetime
 from enum import Enum
 from pathlib import Path
 
@@ -26,6 +27,7 @@ class ResultStorage:
         self.results[_key] = _value
         with self.new_item_condition:
             self.new_item_condition.notify_all()
+            print(f"[{datetime.now().strftime("%H:%M:%S")}][ResultStorage]: Notify for putting result for {_key}")
 
 
 # Module definition
@@ -91,31 +93,30 @@ class ModuleMethods:
         io_module: IoModule = master_module.get_service(Services.IO)
 
         # Request image load and wait for execution
-        print("[MasterModule]: Request image load and wait for execution")
         img_key = io_module.send_request(IoModuleMethods.load_image, {"image_path": image_path})
+        print(f"[{datetime.now().strftime("%H:%M:%S")}][MasterModule]: Request image load and wait for execution: {img_key}")
         # while img_key not in master_module.result_storage.results:
         #     pass
-        wait_for_result(key=img_key, result_storage=master_module.result_storage, timeout_s=10)
+        wait_for_result(_key=img_key, result_storage=master_module.result_storage, timeout_s=600)
         image = master_module.get_result(item_key=img_key)
 
         # Request for image distortion and wait for execution
-        print("[MasterModule]: Request for image distortion and wait for execution")
         distorded_key = math_service.send_request(MathModuleMethods.fisheye_effect, {"image": image, "strength": strength})
+        print(f"[{datetime.now().strftime("%H:%M:%S")}][MasterModule]: Request for image distortion and wait for execution: {distorded_key}")
         while distorded_key not in master_module.result_storage.results:
             pass
-        wait_for_result(key=distorded_key, result_storage=master_module.result_storage, timeout_s=30)
+        wait_for_result(_key=distorded_key, result_storage=master_module.result_storage, timeout_s=600)
         image = master_module.get_result(item_key=distorded_key)
 
         # Request image display and wait for execution
-        print("[MasterModule]: Request image display and wait for execution")
         windows_closed_key = gui_service.send_request(GuiModuleMethods.execute_show_image, {"image": image})
-        # print(windows_closed_key)
+        print(f"[{datetime.now().strftime("%H:%M:%S")}][MasterModule]: Request image display and wait for execution: {windows_closed_key}")
         # while windows_closed_key not in master_module.result_storage.results:
         #     pass
-        wait_for_result(key=windows_closed_key, result_storage=master_module.result_storage, timeout_s=10)
+        wait_for_result(_key=windows_closed_key, result_storage=master_module.result_storage, timeout_s=600)
 
-        print(f"[MasterModule]: Window closed")
-        master_module.result_storage.results[result_key] = True
+        print(f"[{datetime.now().strftime("%H:%M:%S")}][MasterModule]: Window closed")
+        master_module.result_storage.put_result(_key=result_key, _value=True)
 
 
 # Module utils

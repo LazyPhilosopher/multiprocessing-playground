@@ -4,6 +4,7 @@ import multiprocessing
 import threading
 import queue
 import uuid
+from datetime import datetime
 
 
 class BaseServiceModule:
@@ -38,6 +39,7 @@ class BaseServiceModule:
             result = func(**_args) if _args else func()
             if result is not None:
                 self.result_storage.put_result(_key=_key, _value=result)  # Store result in the shared list
+                print(f"[{datetime.now().strftime("%H:%M:%S")}][BaseServiceModule]: putting result for key {_key}")
 
         while self.running.is_set():
             try:
