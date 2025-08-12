@@ -1,23 +1,22 @@
 # main.py
-
 import multiprocessing
 
-from modules.gui_module import GuiModule, ModuleMethods as GuiModuleMethods
-from modules.master_module import MasterModule, Services, ModuleMethods as Macros, ResultStorage
-from modules.math_module import MathModule, ModuleMethods as MathModuleMethods
+from core.modules.gui_module import GuiModule, ModuleMethods as GuiModuleMethods
+from core.modules.master_module import MasterModule, Services, ModuleMethods as Macros, ResultStorage
+from core.modules.math_module import MathModule, ModuleMethods as MathModuleMethods
+from core.logger.logger import Logger
+
+
+logger_config = Logger()
+main_logger = logger_config.get_logger(config_name="root")
+
 
 if __name__ == "__main__":
     """Run several tasks simultaneously incorporating various modules in process."""
-    from utils import wait_for_result
-
-    from logger.logger import Logger
-    logger_config = Logger()
-    logger = logger_config.get_logger("master_module")
-
+    from core.utils import wait_for_result
     multiprocessing.set_start_method('spawn')
 
     result_storage = ResultStorage()  # Shared dict to store results
-    # result_event_dict = {} # dict with all upcoming result flags
 
     master = MasterModule(result_storage)   # Start Master module
 
@@ -36,15 +35,16 @@ if __name__ == "__main__":
     gui_service.send_request(GuiModuleMethods.execute_show_text)
 
     # Wait for atomic tasks to finish
-    logger.info(f"Await for multiplication task: {mul1_key}")
+    main_logger.debug(f"Await for multiplication task: {mul1_key}")
     wait_for_result(_key=mul1_key, result_storage=result_storage, timeout_s=10)
 
     # Display atomic tasks results
-    logger.info(f"Results from MathModule: {list(f"{key}: {result_storage.results[key]}" for key in [sum1_key, sum2_key, mul1_key])}")
+    main_logger.debug(f"Results from MathModule: {list(f"{key}: {result_storage.results[key]}" for key in [sum1_key, sum2_key, mul1_key])}")
 
     # Wait user to close GUI window
-    logger.info(f"Await for image closed: {image_key}")
+    main_logger.warning(f"Await for image closed: {image_key}")
     wait_for_result(_key=image_key, result_storage=result_storage, timeout_s=10)
 
     # Shutdown every module
+    main_logger.debug(f"Execute shutdown.")
     master.shutdown()

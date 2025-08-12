@@ -1,11 +1,10 @@
 # io_module.py
-import multiprocessing
 import time
 from pathlib import Path
 
 import cv2
 
-from modules.base_service_module import BaseServiceModule
+from core.modules.base_service_module import BaseServiceModule
 
 
 # Module definition
