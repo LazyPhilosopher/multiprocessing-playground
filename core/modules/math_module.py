@@ -10,21 +10,36 @@ module_logger = logger_config.get_logger(config_name="default")
 # Module definition
 class MathModule(BaseServiceModule):
     def __init__(self, result_storage=None):
-        super().__init__("MathModule", process_count=1, result_storage=result_storage)
+        super().__init__("MathModule", result_storage=result_storage)
         self.methods = ModuleMethods()
 
 
 # Module offered methods
 class ModuleMethods:
     @staticmethod
-    def execute_sum_calculation(x=1, y=2):
+    def execute_sum_calculation(x: int | float = 1, y: int | float = 2):
+        from core.utils import check_argument_types
+        allowed_types = [float, int]
+        args = {'x': x, 'y': y}
+        passed, msg = check_argument_types(args=args, allowed_types=allowed_types)
+        if not passed:
+            return ValueError(msg)
+
         module_logger.info(f"execute_sum_calculation => {x + y}")
         return x + y
 
     @staticmethod
-    def execute_mul_calculation(x=10, y=20):
+    def execute_mul_calculation(x: int | float = 10, y: int | float = 20):
+        # check type of input
+        from core.utils import check_argument_types
+        allowed_types = [float, int, list]
+        args = {'x': x, 'y': y}
+        passed, msg = check_argument_types(args=args, allowed_types=allowed_types)
+        if not passed:
+            return ValueError(msg)
+
         import time
-        time.sleep(5)
+        time.sleep(10)
         module_logger.info(f"execute_mul_calculation => {x * y}")
         return x * y
 

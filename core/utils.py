@@ -1,7 +1,14 @@
+from core.logger.logger import Logger
 from core.modules.master_module import ResultStorage
 
+logger_config = Logger()
+utils_logger = logger_config.get_logger(config_name="default")
 
-def wait_for_result(_key, timeout_s: float, result_storage: ResultStorage):
+
+def wait_for_result(_key, result_storage: ResultStorage, timeout_s: float | None = None):
+    if not timeout_s:
+        timeout_s = 600
+
     if _key in result_storage.results.keys():
         return True, result_storage.results[_key]
 
@@ -22,3 +29,14 @@ def wait_for_result(_key, timeout_s: float, result_storage: ResultStorage):
                 continue
 
     return success, result
+
+
+def check_argument_types(args: dict, allowed_types: list[type]) -> [bool, str | None]:
+    if not all(any(isinstance(a, t) for t in allowed_types) for a in list(args.values())):
+        mistype_args = [arg_name for arg_name, arg_val in args.items()
+                        if not any(isinstance(arg_val, t) for t in allowed_types)]
+        msg = (f"All execute_mul_calculation arguments should be either int, float or list of those. "
+               f"(Check: {[f"{a}={args[a]}" for a in mistype_args]})")
+        utils_logger.critical(msg)
+        return False, msg
+    return True, None

@@ -24,22 +24,33 @@ if __name__ == "__main__":
 
     gui_service: GuiModule = master.get_service(Services.GUI)       # Get each module reference to send requests to them
     math_service: MathModule = master.get_service(Services.Math)
+    math_service.set_max_threads(max_threads=15)
 
     # Complex macro execution - being executed in Master module's thread
     image_key = master.execute_macro(Macros.display_fisheye, {"image_path": "img/lena.png", "strength": 0.005})
 
     # Atomic tasks being requested by each module separately
     sum1_key = math_service.send_request(MathModuleMethods.execute_sum_calculation, {"x": 2, "y": 3})
-    mul1_key = math_service.send_request(MathModuleMethods.execute_mul_calculation, {"x": 10, "y": 7})
+    mul1_key = math_service.send_request(MathModuleMethods.execute_mul_calculation, {"x": 5, "y": 7})
     sum2_key = math_service.send_request(MathModuleMethods.execute_sum_calculation, {"x": 2, "y": 3})
+
+    mul2_key = math_service.send_request(MathModuleMethods.execute_mul_calculation, {"x": 1, "y": 9})
+    mul3_key = math_service.send_request(MathModuleMethods.execute_mul_calculation, {"x": 2, "y": 8})
+    mul4_key = math_service.send_request(MathModuleMethods.execute_mul_calculation, {"x": 3, "y": 7})
+    mul5_key = math_service.send_request(MathModuleMethods.execute_mul_calculation, {"x": 4, "y": 6})
+    mul6_key = math_service.send_request(MathModuleMethods.execute_mul_calculation, {"x": 5, "y": 5})
+    mul7_key = math_service.send_request(MathModuleMethods.execute_mul_calculation, {"x": 5, "y": 5})
+    mul8_key = math_service.send_request(MathModuleMethods.execute_mul_calculation, {"x": 5, "y": 5})
+    math_keys = [sum1_key, sum2_key, mul1_key, mul2_key, mul3_key, mul4_key, mul5_key, mul6_key, mul7_key, mul8_key]
+
     gui_service.send_request(GuiModuleMethods.execute_show_text)
 
     # Wait for atomic tasks to finish
-    main_logger.debug(f"Await for multiplication task: {mul1_key}")
-    wait_for_result(_key=mul1_key, result_storage=result_storage, timeout_s=10)
+    main_logger.debug(f"Await for multiplication task: {mul6_key}")
+    wait_for_result(_key=mul8_key, result_storage=result_storage)
 
     # Display atomic tasks results
-    main_logger.debug(f"Results from MathModule: {list(f"{key}: {result_storage.results[key]}" for key in [sum1_key, sum2_key, mul1_key])}")
+    main_logger.debug(f"Results from MathModule: {list(f"{key}: {result_storage.results[key]}" for key in math_keys)}")
 
     # Wait user to close GUI window
     main_logger.warning(f"Await for image closed: {image_key}")

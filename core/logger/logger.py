@@ -43,7 +43,7 @@ class Logger:
 
         stdout_formatter = colorlog.ColoredFormatter(
             fmt=(
-                f"[{MAGENTA}%(asctime)s{RESET}]"
+                f"[{MAGENTA}%(asctime)s.%(msecs)03d{RESET}]"
                 f"[{BLUE}%(module)s{RESET}]:"
                 f"%(log_color)s%(message)s{RESET}"
                 # f"{WHITE}%(message)s{RESET}"

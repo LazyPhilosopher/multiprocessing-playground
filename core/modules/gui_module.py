@@ -9,7 +9,7 @@ module_logger = logger_config.get_logger(config_name="default")
 # Module definition
 class GuiModule(BaseServiceModule):
     def __init__(self, result_storage=None):
-        super().__init__("GuiModule", process_count=1, result_storage=result_storage)
+        super().__init__("GuiModule", result_storage=result_storage)
         self.methods = ModuleMethods()
 
 
