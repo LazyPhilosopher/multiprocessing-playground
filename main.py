@@ -30,9 +30,9 @@ if __name__ == "__main__":
     image_key = master.execute_macro(Macros.display_fisheye, {"image_path": "img/lena.png", "strength": 0.005})
 
     # Atomic tasks being requested by each module separately
-    sum1_key = math_service.send_request(Task(func=MathModuleMethods.execute_sum_calculation, kwargs={"x": 2, "y": 3}))
+    sum1_key = math_service.send_request(Task(func=MathModuleMethods.execute_sum_calculation, kwargs={"x": 2, "y": 3}, max_executions=20))
     mul1_key = math_service.send_request(Task(func=MathModuleMethods.execute_mul_calculation, kwargs={"x": 5, "y": 7}))
-    sum2_key = math_service.send_request(Task(func=MathModuleMethods.execute_sum_calculation, kwargs={"x": 2, "y": 3}))
+    sum2_key = math_service.send_request(Task(func=MathModuleMethods.execute_sum_calculation, kwargs={"x": 2, "y": 3}, max_executions=20))
 
     mul2_key = math_service.send_request(Task(func=MathModuleMethods.execute_mul_calculation, kwargs={"x": 1, "y": 9}))
     mul3_key = math_service.send_request(Task(func=MathModuleMethods.execute_mul_calculation, kwargs={"x": 2, "y": 8}))
@@ -43,7 +43,7 @@ if __name__ == "__main__":
     mul8_key = math_service.send_request(Task(func=MathModuleMethods.execute_mul_calculation, kwargs={"x": 5, "y": 5}))
     math_keys = [sum1_key, sum2_key, mul1_key, mul2_key, mul3_key, mul4_key, mul5_key, mul6_key, mul7_key, mul8_key]
 
-    gui_service.send_request(GuiModuleMethods.execute_show_text)
+    gui_service.send_request(Task(func=GuiModuleMethods.execute_show_text))
 
     # Wait for atomic tasks to finish
     main_logger.debug(f"Await for multiplication task: {mul6_key}")

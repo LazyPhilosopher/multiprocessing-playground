@@ -1,4 +1,6 @@
 # math_module.py
+from random import randrange
+
 import cv2
 import numpy as np
 
@@ -18,6 +20,10 @@ class MathModule(BaseServiceModule):
 class ModuleMethods:
     @staticmethod
     def execute_sum_calculation(x: int | float = 1, y: int | float = 2):
+        # unstable task exception
+        if randrange(10) != 1:
+            return Exception("Unstable task exception")
+
         from core.utils import check_argument_types
         allowed_types = [float, int]
         args = {'x': x, 'y': y}
@@ -26,6 +32,7 @@ class ModuleMethods:
             return ValueError(msg)
 
         module_logger.info(f"execute_sum_calculation => {x + y}")
+
         return x + y
 
     @staticmethod
