@@ -47,11 +47,10 @@ class BaseServiceModule:
             # Task execution class wrapper
             result = _task.func(**_task.kwargs) if _task.kwargs else _task.func()
             if result is not None:
-                if isinstance(result, Exception):
-                    if _task.max_executions > 1:
-                        module_logger.warning(f"Scheduling task {_key} for re-execution")
-                        _task.max_executions -= 1
-                        self.send_request(_task, key=_key)
+                if isinstance(result, Exception) and _task.max_executions > 1:
+                    module_logger.warning(f"Scheduling task {_key} for re-execution")
+                    _task.max_executions -= 1
+                    self.send_request(_task, key=_key)
                 else:
                     self.result_storage.put_result(_key=_key, _value=result)  # Store result in the shared list
                 # module_logger.info(f"putting result for key {_key}")
