@@ -30,9 +30,9 @@ if __name__ == "__main__":
     image_key = master.execute_macro(Macros.display_fisheye, {"image_path": "img/lena.png", "strength": 0.005})
 
     # Atomic tasks being requested by each module separately
-    sum1_key = math_service.send_request(Task(func=MathModuleMethods.execute_sum_calculation, kwargs={"x": 2, "y": 3}, max_executions=20))
+    sum1_key = math_service.send_request(Task(func=MathModuleMethods.execute_sum_calculation, kwargs={"x": 2, "y": 3}, max_executions=3))
     mul1_key = math_service.send_request(Task(func=MathModuleMethods.execute_mul_calculation, kwargs={"x": 5, "y": 7}))
-    sum2_key = math_service.send_request(Task(func=MathModuleMethods.execute_sum_calculation, kwargs={"x": 2, "y": 3}, max_executions=20))
+    sum2_key = math_service.send_request(Task(func=MathModuleMethods.execute_sum_calculation, kwargs={"x": 2, "y": 3}, max_executions=3))
 
     mul2_key = math_service.send_request(Task(func=MathModuleMethods.execute_mul_calculation, kwargs={"x": 1, "y": 9}))
     mul3_key = math_service.send_request(Task(func=MathModuleMethods.execute_mul_calculation, kwargs={"x": 2, "y": 8}))
