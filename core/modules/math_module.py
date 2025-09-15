@@ -21,7 +21,7 @@ class ModuleMethods:
     @staticmethod
     def execute_sum_calculation(x: int | float = 1, y: int | float = 2):
         # unstable task exception
-        if randrange(10) != 1:
+        if randrange(5) != 1:
             return Exception("Unstable task exception")
 
         from core.utils import check_argument_types

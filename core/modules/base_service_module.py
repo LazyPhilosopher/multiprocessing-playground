@@ -52,9 +52,12 @@ class BaseServiceModule:
                         module_logger.warning(f"Scheduling task {_key} for re-execution")
                         _task.max_executions -= 1
                         self.send_request(_task, key=_key)
+                    else:
+                        module_logger.error(f"Failed to execute task {_key}.")
+                        self.result_storage.put_result(_key=_key, _value=result)
                 else:
-                    self.result_storage.put_result(_key=_key, _value=result)  # Store result in the shared list
-                # module_logger.info(f"putting result for key {_key}")
+                    self.result_storage.put_result(_key=_key, _value=result)
+
 
         while self.running.is_set():
             removal_keys = []
