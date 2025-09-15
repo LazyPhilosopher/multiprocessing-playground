@@ -10,7 +10,7 @@ from core.modules.io_module import IoModule
 from core.modules.math_module import MathModule
 
 from core.modules.base_service_module import logger_config
-
+from core.struct.task import Task
 
 module_logger = logger_config.get_logger("default")
 
@@ -97,7 +97,7 @@ class ModuleMethods:
         io_module: IoModule = master_module.get_service(Services.IO)
 
         # Request image load and wait for execution
-        img_key = io_module.send_request(IoModuleMethods.load_image, {"image_path": image_path})
+        img_key = io_module.send_request(Task(func=IoModuleMethods.load_image, kwargs={"image_path": image_path}))
         module_logger.info(f"Request image load and wait for execution: {img_key}")
         # while img_key not in master_module.result_storage.results:
         #     pass
@@ -105,7 +105,8 @@ class ModuleMethods:
         image = master_module.get_result(item_key=img_key)
 
         # Request for image distortion and wait for execution
-        distorded_key = math_service.send_request(MathModuleMethods.fisheye_effect, {"image": image, "strength": strength})
+        distorded_key = math_service.send_request(Task(func=MathModuleMethods.fisheye_effect, kwargs={"image": image, "strength": strength}))
+
         module_logger.info(f"Request for image distortion and wait for execution: {distorded_key}")
         while distorded_key not in master_module.result_storage.results:
             pass
@@ -113,7 +114,7 @@ class ModuleMethods:
         image = master_module.get_result(item_key=distorded_key)
 
         # Request image display and wait for execution
-        windows_closed_key = gui_service.send_request(GuiModuleMethods.execute_show_image, {"image": image})
+        windows_closed_key = gui_service.send_request(Task(func=GuiModuleMethods.execute_show_image, kwargs={"image": image}))
         module_logger.info(f"Request image display and wait for execution: {windows_closed_key}")
         # while windows_closed_key not in master_module.result_storage.results:
         #     pass
