@@ -1,4 +1,6 @@
 # math_module.py
+from random import randrange
+
 import cv2
 import numpy as np
 
@@ -9,8 +11,8 @@ module_logger = logger_config.get_logger(config_name="default")
 
 # Module definition
 class MathModule(BaseServiceModule):
-    def __init__(self, result_storage=None):
-        super().__init__("MathModule", result_storage=result_storage)
+    def __init__(self, result_storage=None, result_storage_mutex=None):
+        super().__init__("MathModule", result_storage=result_storage, result_storage_mutex=result_storage_mutex)
         self.methods = ModuleMethods()
 
 
@@ -18,14 +20,19 @@ class MathModule(BaseServiceModule):
 class ModuleMethods:
     @staticmethod
     def execute_sum_calculation(x: int | float = 1, y: int | float = 2):
+        # unstable task exception
+        if randrange(5) != 1:
+            raise Exception("Unstable task exception")
+
         from core.utils import check_argument_types
         allowed_types = [float, int]
         args = {'x': x, 'y': y}
         passed, msg = check_argument_types(args=args, allowed_types=allowed_types)
         if not passed:
-            return ValueError(msg)
+            raise ValueError(msg)
 
         module_logger.info(f"execute_sum_calculation => {x + y}")
+
         return x + y
 
     @staticmethod
@@ -36,7 +43,7 @@ class ModuleMethods:
         args = {'x': x, 'y': y}
         passed, msg = check_argument_types(args=args, allowed_types=allowed_types)
         if not passed:
-            return ValueError(msg)
+            raise ValueError(msg)
 
         import time
         time.sleep(10)

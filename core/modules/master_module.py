@@ -10,7 +10,7 @@ from core.modules.io_module import IoModule
 from core.modules.math_module import MathModule
 
 from core.modules.base_service_module import logger_config
-
+from core.struct.task import Task
 
 module_logger = logger_config.get_logger("default")
 
@@ -36,9 +36,11 @@ class ResultStorage:
 
 # Module definition
 class MasterModule:
-    def __init__(self, result_storage: ResultStorage):
+    def __init__(self):
+        result_storage = ResultStorage()
         self.max_processes = 5
         self.services = {}
+        self.result_storage_mutex = multiprocessing.Lock()
         self.result_storage = result_storage
         self.macros = ModuleMethods()
 
@@ -51,11 +53,14 @@ class MasterModule:
         instance = None
         match service:
             case Services.Math:
-                instance = MathModule(result_storage=self.result_storage)
+                instance = MathModule(result_storage=self.result_storage,
+                                      result_storage_mutex=self.result_storage_mutex)
             case Services.GUI:
-                instance = GuiModule(result_storage=self.result_storage)
+                instance = GuiModule(result_storage=self.result_storage,
+                                     result_storage_mutex=self.result_storage_mutex)
             case Services.IO:
-                instance = IoModule(result_storage=self.result_storage)
+                instance = IoModule(result_storage=self.result_storage,
+                                    result_storage_mutex=self.result_storage_mutex)
             case _:
                 # Raise Exception
                 pass
@@ -86,7 +91,7 @@ class MasterModule:
 class ModuleMethods:
     @staticmethod
     def display_fisheye(master_module, result_key: str, image_path: str | Path, strength: float):
-        from core.utils import wait_for_result
+        from core.utils import wait_for_results
 
         from core.modules.gui_module import GuiModule, ModuleMethods as GuiModuleMethods
         from core.modules.math_module import MathModule, ModuleMethods as MathModuleMethods
@@ -97,27 +102,28 @@ class ModuleMethods:
         io_module: IoModule = master_module.get_service(Services.IO)
 
         # Request image load and wait for execution
-        img_key = io_module.send_request(IoModuleMethods.load_image, {"image_path": image_path})
+        img_key = io_module.send_request(Task(func=IoModuleMethods.load_image, kwargs={"image_path": image_path}))
         module_logger.info(f"Request image load and wait for execution: {img_key}")
         # while img_key not in master_module.result_storage.results:
         #     pass
-        wait_for_result(_key=img_key, result_storage=master_module.result_storage, timeout_s=600)
+        wait_for_results(_keys=img_key, result_storage=master_module.result_storage, timeout_s=600)
         image = master_module.get_result(item_key=img_key)
 
         # Request for image distortion and wait for execution
-        distorded_key = math_service.send_request(MathModuleMethods.fisheye_effect, {"image": image, "strength": strength})
+        distorded_key = math_service.send_request(Task(func=MathModuleMethods.fisheye_effect, kwargs={"image": image, "strength": strength}))
+
         module_logger.info(f"Request for image distortion and wait for execution: {distorded_key}")
         while distorded_key not in master_module.result_storage.results:
             pass
-        wait_for_result(_key=distorded_key, result_storage=master_module.result_storage, timeout_s=600)
+        wait_for_results(_keys=distorded_key, result_storage=master_module.result_storage, timeout_s=600)
         image = master_module.get_result(item_key=distorded_key)
 
         # Request image display and wait for execution
-        windows_closed_key = gui_service.send_request(GuiModuleMethods.execute_show_image, {"image": image})
+        windows_closed_key = gui_service.send_request(Task(func=GuiModuleMethods.execute_show_image, kwargs={"image": image}))
         module_logger.info(f"Request image display and wait for execution: {windows_closed_key}")
         # while windows_closed_key not in master_module.result_storage.results:
         #     pass
-        wait_for_result(_key=windows_closed_key, result_storage=master_module.result_storage, timeout_s=600)
+        wait_for_results(_keys=windows_closed_key, result_storage=master_module.result_storage, timeout_s=600)
 
         module_logger.info(f"Window closed")
         master_module.result_storage.put_result(_key=result_key, _value=True)

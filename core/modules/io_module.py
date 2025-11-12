@@ -9,8 +9,8 @@ from core.modules.base_service_module import BaseServiceModule
 
 # Module definition
 class IoModule(BaseServiceModule):
-    def __init__(self, result_storage=None):
-        super().__init__("IoModule", result_storage=result_storage)
+    def __init__(self, result_storage=None, result_storage_mutex=None):
+        super().__init__("IoModule", result_storage=result_storage, result_storage_mutex=result_storage_mutex)
         self.methods = ModuleMethods()
 
 
