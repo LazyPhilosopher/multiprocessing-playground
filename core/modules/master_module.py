@@ -86,12 +86,38 @@ class MasterModule:
     def get_result(self, item_key: str):
         return self.result_storage.results.pop(item_key)
 
+    def wait_for_results(self, _keys: list | int, timeout_s: float | None = None):
+        if not timeout_s:
+            timeout_s = 600
+
+        if not isinstance(_keys, list):
+            _keys = [_keys]
+
+        if all(k in self.result_storage.results.keys() for k in _keys):
+            return True, [self.result_storage.results[k] for k in _keys]
+
+        from datetime import datetime
+        start_time = datetime.now()
+        success = False
+        result = None
+
+        while (datetime.now() - start_time).seconds < timeout_s:
+            _timeout_s = timeout_s - (datetime.now() - start_time).seconds
+            with self.result_storage.new_item_condition:
+                task_status = self.result_storage.new_item_condition.wait(timeout=_timeout_s)
+                if task_status and all(k in self.result_storage.results.keys() for k in _keys):
+                    return True, [self.result_storage.results[k] for k in _keys]
+                else:
+                    continue
+
+        return success, result
+
 
 # Module offered methods
 class ModuleMethods:
     @staticmethod
     def display_fisheye(master_module, result_key: str, image_path: str | Path, strength: float):
-        from core.utils import wait_for_results
+        # from core.utils import wait_for_results
 
         from core.modules.gui_module import GuiModule, ModuleMethods as GuiModuleMethods
         from core.modules.math_module import MathModule, ModuleMethods as MathModuleMethods
@@ -102,28 +128,27 @@ class ModuleMethods:
         io_module: IoModule = master_module.get_service(Services.IO)
 
         # Request image load and wait for execution
-        img_key = io_module.send_request(Task(func=IoModuleMethods.load_image, kwargs={"image_path": image_path}))
+        img_key = io_module.send_request(Task(func=IoModuleMethods.load_image, image_path=image_path))
         module_logger.info(f"Request image load and wait for execution: {img_key}")
         # while img_key not in master_module.result_storage.results:
         #     pass
-        wait_for_results(_keys=img_key, result_storage=master_module.result_storage, timeout_s=600)
+        master_module.wait_for_results(_keys=img_key, timeout_s=600)
         image = master_module.get_result(item_key=img_key)
 
         # Request for image distortion and wait for execution
-        distorded_key = math_service.send_request(Task(func=MathModuleMethods.fisheye_effect, kwargs={"image": image, "strength": strength}))
-
+        distorded_key = math_service.send_request(Task(func=MathModuleMethods.fisheye_effect, image=image, strength=strength))
         module_logger.info(f"Request for image distortion and wait for execution: {distorded_key}")
         while distorded_key not in master_module.result_storage.results:
             pass
-        wait_for_results(_keys=distorded_key, result_storage=master_module.result_storage, timeout_s=600)
+        master_module.wait_for_results(_keys=distorded_key, timeout_s=600)
         image = master_module.get_result(item_key=distorded_key)
 
         # Request image display and wait for execution
-        windows_closed_key = gui_service.send_request(Task(func=GuiModuleMethods.execute_show_image, kwargs={"image": image}))
+        windows_closed_key = gui_service.send_request(Task(func=GuiModuleMethods.execute_show_image, image=image))
         module_logger.info(f"Request image display and wait for execution: {windows_closed_key}")
         # while windows_closed_key not in master_module.result_storage.results:
         #     pass
-        wait_for_results(_keys=windows_closed_key, result_storage=master_module.result_storage, timeout_s=600)
+        master_module.wait_for_results(_keys=windows_closed_key, timeout_s=600)
 
         module_logger.info(f"Window closed")
         master_module.result_storage.put_result(_key=result_key, _value=True)

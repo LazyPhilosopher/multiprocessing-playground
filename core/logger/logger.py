@@ -9,11 +9,12 @@ import sys
 
 def singleton(class_):
     instances = {}
-    def getinstance(*args, **kwargs):
+
+    def get_instance(*args, **kwargs):
         if class_ not in instances:
             instances[class_] = class_(*args, **kwargs)
         return instances[class_]
-    return getinstance
+    return get_instance
 
 
 @singleton
@@ -43,8 +44,8 @@ class Logger:
 
         stdout_formatter = colorlog.ColoredFormatter(
             fmt=(
-                f"[{MAGENTA}%(asctime)s.%(msecs)03d{RESET}]"
-                f"[{BLUE}%(module)s{RESET}]:"
+                f"[{BLUE}%(asctime)s.%(msecs)03d{RESET}]"
+                f"[{CYAN}%(module)s{RESET}]: "
                 f"%(log_color)s%(message)s{RESET}"
                 # f"{WHITE}%(message)s{RESET}"
             ),

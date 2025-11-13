@@ -47,7 +47,7 @@ class BaseServiceModule:
         def worker(_key: uuid, _task: Task):
             # Task execution class wrapper
             try:
-                result = _task.func(**_task.kwargs) if _task.kwargs else _task.func()
+                result = _task.execute()
             except Exception as ex:
                 result = ex
 

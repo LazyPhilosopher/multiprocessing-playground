@@ -7,31 +7,31 @@ logger_config = Logger()
 utils_logger = logger_config.get_logger(config_name="default")
 
 
-def wait_for_results(_keys: list | int, result_storage: ResultStorage, timeout_s: float | None = None):
-    if not timeout_s:
-        timeout_s = 600
-
-    if not isinstance(_keys, list):
-        _keys = [_keys]
-
-    if all(k in result_storage.results.keys() for k in _keys):
-        return True, [result_storage.results[k] for k in _keys]
-
-    from datetime import datetime
-    start_time = datetime.now()
-    success = False
-    result = None
-
-    while (datetime.now() - start_time).seconds < timeout_s:
-        _timeout_s = timeout_s - (datetime.now() - start_time).seconds
-        with result_storage.new_item_condition:
-            task_status = result_storage.new_item_condition.wait(timeout=_timeout_s)
-            if task_status and all(k in result_storage.results.keys() for k in _keys):
-                return True, [result_storage.results[k] for k in _keys]
-            else:
-                continue
-
-    return success, result
+# def wait_for_results(_keys: list | int, result_storage: ResultStorage, timeout_s: float | None = None):
+#     if not timeout_s:
+#         timeout_s = 600
+#
+#     if not isinstance(_keys, list):
+#         _keys = [_keys]
+#
+#     if all(k in result_storage.results.keys() for k in _keys):
+#         return True, [result_storage.results[k] for k in _keys]
+#
+#     from datetime import datetime
+#     start_time = datetime.now()
+#     success = False
+#     result = None
+#
+#     while (datetime.now() - start_time).seconds < timeout_s:
+#         _timeout_s = timeout_s - (datetime.now() - start_time).seconds
+#         with result_storage.new_item_condition:
+#             task_status = result_storage.new_item_condition.wait(timeout=_timeout_s)
+#             if task_status and all(k in result_storage.results.keys() for k in _keys):
+#                 return True, [result_storage.results[k] for k in _keys]
+#             else:
+#                 continue
+#
+#     return success, result
 
 
 def check_argument_types(args: dict, allowed_types: list[type]) -> [bool, str | None]:
