@@ -1,6 +1,7 @@
 ### TODO
 * passing unpickelable object
 * improved docstrings
+* investigate possibility to pack project into executable file
 
 ### DONE
 * zombie-task shutdown [OK]
